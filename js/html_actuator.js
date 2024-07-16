@@ -3,7 +3,7 @@ function HTMLActuator() {
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
   this.messageContainer = document.querySelector(".game-message");
-
+  this.isSwitchedImage = false; 
   this.score = 0;
 }
 
@@ -30,6 +30,13 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
       } else if (metadata.won) {
         self.message(true); // You win!
       }
+    }
+
+    var switchButton = document.querySelector('.switch-button');
+    if (this.isSwitchedImage) {
+      switchButton.innerText = '切换帅聪';
+    } else {
+      switchButton.innerText = '切换丑聪';
     }
 
   });
@@ -62,7 +69,21 @@ HTMLActuator.prototype.addTile = function (tile) {
   this.applyClasses(wrapper, classes);
 
   inner.classList.add("tile-inner");
-  inner.textContent = tile.value;
+  // inner.textContent = tile.value;
+
+  var imgSrc;
+  if (this.isSwitchedImage) {
+    imgSrc = `meta/ugly/${tile.value}.jpg`; // 原图路径，如 /meta/${tile.value}.png
+  } else {
+    imgSrc = `meta/${tile.value}.jpg`; // 新图路径，如 /meta/ugly/${tile.value}.png
+  }
+
+  var img = document.createElement("img");
+  img.style.maxWidth = "100%";
+  img.style.maxHeight = "100%";
+  img.src = imgSrc;
+  img.alt = tile.value;
+  inner.appendChild(img);
 
   if (tile.previousPosition) {
     // Make sure that the tile gets rendered in the previous position first
@@ -136,4 +157,28 @@ HTMLActuator.prototype.clearMessage = function () {
   // IE only takes one value to remove at a time.
   this.messageContainer.classList.remove("game-won");
   this.messageContainer.classList.remove("game-over");
+};
+
+HTMLActuator.prototype.switchImage = function(isSwitchedImage) {
+  this.isSwitchedImage = isSwitchedImage;
+
+  var switchButton = document.querySelector('.switch-button');
+  if (isSwitchedImage) {
+    switchButton.innerText = '切换帅聪';
+  } else {
+    switchButton.innerText = '切换丑聪';
+  }
+
+  var imageElements = document.querySelectorAll(".tile-inner img");
+  imageElements.forEach((imgElement) => {
+    var val = imgElement.src.split("/").pop().split(".")[0]; //取当前图片的数字值
+    var imgSrc;
+    if (isSwitchedImage) {
+      imgSrc = `meta/ugly/${val}.jpg`;
+    } else {
+      imgSrc = `meta/${val}.jpg`;
+    }
+
+    imgElement.src = imgSrc; // 或 `你的图片路径/${val}.jpg`，根据你的实际图片格式设置
+  });
 };

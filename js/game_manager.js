@@ -3,12 +3,13 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager   = new InputManager;
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
-
+  this.isSwitchedImage = false;
   this.startTiles     = 2;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+  this.inputManager.on("switchImage", this.switchImage.bind(this));
 
   this.setup();
 }
@@ -75,6 +76,7 @@ GameManager.prototype.addRandomTile = function () {
   }
 };
 
+
 // Sends the updated grid to the actuator
 GameManager.prototype.actuate = function () {
   if (this.storageManager.getBestScore() < this.score) {
@@ -88,12 +90,23 @@ GameManager.prototype.actuate = function () {
     this.storageManager.setGameState(this.serialize());
   }
 
+  this.grid.eachCell((x, y, tile) => {
+    if (tile) {
+      tile.value = tile.value.toString(); // 将数字转换为字符串
+      var imageSrc = 'meta/ugly/${tile.value}.jpg'; // 设置图片路径
+      var imageAlt = tile.value; // 设置图片的 alt 属性值
+      tile.imageSrc = imageSrc;
+      tile.imageAlt = imageAlt;
+    }
+  });
+
   this.actuator.actuate(this.grid, {
     score:      this.score,
     over:       this.over,
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
-    terminated: this.isGameTerminated()
+    terminated: this.isGameTerminated(),
+    isSwitchedImage: this.isSwitchedImage
   });
 
 };
@@ -236,7 +249,8 @@ GameManager.prototype.findFarthestPosition = function (cell, vector) {
 };
 
 GameManager.prototype.movesAvailable = function () {
-  return this.grid.cellsAvailable() || this.tileMatchesAvailable();
+  return this.tileMatchesAvailable() || this.grid.cellsAvailable();
+  // return this.grid.cellsAvailable() || this.tileMatchesAvailable();
 };
 
 // Check for available matches between tiles (more expensive check)
@@ -269,4 +283,9 @@ GameManager.prototype.tileMatchesAvailable = function () {
 
 GameManager.prototype.positionsEqual = function (first, second) {
   return first.x === second.x && first.y === second.y;
+};
+
+GameManager.prototype.switchImage = function() {
+  this.isSwitchedImage = !this.isSwitchedImage;
+  this.actuator.switchImage(this.isSwitchedImage);
 };

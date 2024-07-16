@@ -512,6 +512,11 @@ hr {
   display: block;
   clear: both; }
 
+.above-switch:after {
+  content: "";
+  display: block;
+  clear: both; }
+
 .game-intro {
   float: left;
   line-height: 42px;
